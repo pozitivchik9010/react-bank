@@ -1,0 +1,12 @@
+.validation--active {
+  border-color: red !important;
+  color: red !important;
+}
+.form__error {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.form__error--active {
+  color: red !important;
+}

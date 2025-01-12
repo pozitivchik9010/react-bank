@@ -1,0 +1,32 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field__label {
+  font-size: 14px;
+  font-weight: 400;
+  margin-bottom: 5px;
+  color: #1d1d1f;
+}
+
+.field__input {
+  border: 1px solid #e9e8eb;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #121212;
+  transition: border-color 0.3s;
+}
+
+.field__input::placeholder {
+  color: #888888;
+}
+
+.field__input:hover {
+  border-color: #363636;
+}
+
+.field__input:focus {
+  border-color: #775ce5;
+}

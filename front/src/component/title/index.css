@@ -1,0 +1,10 @@
+.title {
+  color: rgb(255, 255, 255);
+  font-weight: 500;
+  font-size: 42px;
+}
+.title.sub-title {
+  font-weight: 400;
+  color: #ffffff;
+  font-size: 20px;
+}

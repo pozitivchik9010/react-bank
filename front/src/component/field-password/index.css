@@ -1,0 +1,25 @@
+.field__wrapper {
+  width: 100%;
+  display: grid;
+  position: relative;
+}
+
+.field__icon {
+  display: block;
+  height: 25px;
+  width: 25px;
+
+  background-image: url("./password-hide.svg");
+  background-size: cover;
+
+  position: absolute;
+  right: 16px;
+  top: calc(50% - 10px);
+}
+.field__icon--show {
+  background-image: url("./password-show.svg");
+}
+
+.field__input {
+  padding-right: calc(16px + 20px + 16px);
+}

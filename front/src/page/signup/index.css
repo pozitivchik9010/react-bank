@@ -1,0 +1,18 @@
+.main_container {
+  display: grid;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px;
+  gap: 16px;
+}
+
+.main-title {
+  color: rgb(0, 0, 0);
+  font-weight: 500;
+  font-size: 24px;
+}
+.main-sub-title {
+  font-weight: 400;
+  color: #939199;
+  font-size: 14px;
+}

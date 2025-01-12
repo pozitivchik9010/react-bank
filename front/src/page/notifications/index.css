@@ -1,0 +1,4 @@
+.notification__item {
+  display: flex;
+  justify-content: start;
+}
