@@ -1,3 +1,4 @@
+import { useContext, useState } from "react";
 import "./index.css";
 import Button from "../../component/button";
 import Title from "../../component/title";
@@ -12,6 +13,7 @@ import { Form, REG_EXP_EMAIL } from "../../util/form";
 
 export default function Recovery() {
   const navigate = useNavigate();
+  const { currentAuth } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [alertClass, setAlertClass] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
@@ -21,9 +23,9 @@ export default function Recovery() {
     EMAIL: "email",
   };
   form.FIELD_ERROR = {
-    IS_EMPTY: "Enter a value in the field",
-    IS_BIG: "Very long value, remove the extra",
-    EMAIL: "Please enter a valid email address.",
+    IS_EMPTY: "Введіть значення в поле",
+    IS_BIG: "Дуже довге значення, приберіть зайве",
+    EMAIL: "Введіть коректне значення e-mail адреси",
   };
   const validateEmail = (value) => {
     if (String(value).length < 1) {
@@ -60,12 +62,13 @@ export default function Recovery() {
     setEmail(value);
 
     let error = validateEmail(email);
-
     if (error) {
       setError(error);
     } else {
       setError(null);
     }
+    // setAlertClass(error ? "alert--error" : "alert--disabled");
+    // setAlertMessage(error || "");
   };
 
   const handleSubmit = async (e) => {
@@ -78,7 +81,7 @@ export default function Recovery() {
     }
 
     setAlertClass("alert--progress");
-    setAlertMessage("Loading...");
+    setAlertMessage("Завантаження...");
 
     try {
       const res = await fetch("http://localhost:4000/recovery", {
@@ -98,7 +101,7 @@ export default function Recovery() {
       }
     } catch (error) {
       setAlertClass("alert--error");
-      setAlertMessage("Error server: " + error.message);
+      setAlertMessage("Помилка сервера: " + error.message);
     }
   };
 
