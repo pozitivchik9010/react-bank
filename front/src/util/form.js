@@ -24,12 +24,11 @@ export class Form {
       delete this.error[name];
     }
 
-    this.checkDisabled();
+    this.updateDisabledState();
   };
 
   setError = (name, error) => {
     const span = document.querySelector(`.form__error[name="${name}"]`);
-
     const field = document.querySelector(`.validation[name="${name}"]`);
 
     if (span) {
@@ -42,46 +41,44 @@ export class Form {
     }
   };
 
-  checkDisabled = () => {
-    let disabled = false;
+  updateDisabledState = () => {
+    const hasErrors = Object.values(this.FIELD_NAME).some(
+      (name) => this.error[name] || !this.value[name]
+    );
 
-    Object.values(this.FIELD_NAME).forEach((name) => {
-      if (this.error[name] || this.value[name] === undefined) {
-        disabled = true;
-      }
-    });
+    this.disabled = hasErrors;
 
-    const el = document.querySelector(`.button`);
-
-    if (el) {
-      el.classList.toggle("button--disabled", Boolean(disabled));
+    const button = document.querySelector(`.button`);
+    if (button) {
+      button.classList.toggle("button--disabled", hasErrors);
+      button.disabled = hasErrors;
     }
-
-    this.disabled = disabled;
   };
 
   validateAll = () => {
-    Object.values(this.FIELD_NAME).forEach((name) => {
-      const error = this.validate(name, this.value[name]);
+    let hasErrors = false;
 
+    Object.values(this.FIELD_NAME).forEach((name) => {
+      const value = this.value[name] || "";
+      const error = this.validate(name, value);
       if (error) {
-        this.setError(name, error);
+        this.error[name] = error;
+        hasErrors = true;
+      } else {
+        delete this.error[name];
       }
+
+      this.setError(name, error);
     });
+    this.updateDisabledState();
+    return hasErrors;
   };
 
   setAlert = (status, text) => {
-    const el = document.querySelector(`.alert`);
-    if (status === "progress") {
-      el.className = "alert alert--progress";
-    } else if (status === "success") {
-      el.className = "alert alert--success";
-    } else if (status === "error") {
-      el.className = "alert alert--error";
-    } else {
-      el.className = "alert alert--disabled";
-    }
+    const alert = document.querySelector(`.alert`);
+    if (!alert) return;
 
-    if (text) el.innerText = text;
+    alert.className = `alert alert--${status}`;
+    alert.innerText = text || "";
   };
 }

@@ -41,5 +41,3 @@ class Session {
 }
 
 module.exports = { Session }
-
-console.log(Session.generateCode())

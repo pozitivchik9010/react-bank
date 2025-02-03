@@ -8,11 +8,9 @@ import Box from "../../component/box";
 import FieldPassword from "../../component/field-password";
 import Alert from "../../component/alert";
 import { useNavigate, Link } from "react-router-dom";
-///////
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../App";
 import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
-///////
 
 class SignupForm extends Form {
   FIELD_NAME = {
@@ -21,22 +19,13 @@ class SignupForm extends Form {
     PASSWORD_AGAIN: "passwordAgain",
   };
   FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
     PASSWORD:
-      "Пароль повинен складатися не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
-    PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
+      "The password must be at least 8 characters long, including at least one number, lowercase and uppercase letter.",
+    PASSWORD_AGAIN: "Your second password does not match the first one.",
   };
-
-  constructor() {
-    super();
-    this.value = {
-      [this.FIELD_NAME.EMAIL]: "",
-      [this.FIELD_NAME.PASSWORD]: "",
-      [this.FIELD_NAME.PASSWORD_AGAIN]: "",
-    };
-  }
 
   checkDisabled = () => {
     let disabled = false;
@@ -115,12 +104,13 @@ class SignupForm extends Form {
 export default function Signup() {
   const navigate = useNavigate();
   const signupForm = new SignupForm();
-  const { setAuth, currentAuth } = useContext(AuthContext);
+  const { setAuth } = useContext(AuthContext);
+  const [alertClass, setAlertClass] = useState("alert--disabled");
+  const [alertText, setAlertText] = useState("");
 
   const change = (name, value) => {
     const error = signupForm.validate(name, value);
     signupForm.value[name] = value;
-    console.log("value", signupForm.value);
     if (error) {
       signupForm.setError(name, error);
       signupForm.error[name] = error;
@@ -130,41 +120,28 @@ export default function Signup() {
     }
   };
 
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
-  //     signupForm.validateAll();
-  //     signupForm.setAlert("progress", "Завантаження... ");
-  //     try {
-  //       const res = await fetch("http://localhost:4000/signup", {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           email: signupForm.value.email,
-  //           password: signupForm.value.password,
-  //         }),
-  //       });
-  //       const data = await res.json();
-  //       if (res.ok) {
-  //         signupForm.setAlert("success", data.message);
-  //         saveSession(data.session);
-  //         localStorage.setItem("token", data.session.token);
-  //         navigate("/signup-confirm");
-  //       } else {
-  //         signupForm.setAlert("error", data.message);
-  //       }
-  //     } catch (error) {
-  //       signupForm.setAlert("error", error.message);
-  //     }
+  const setAlert = (status, text) => {
+    if (status === "progress") {
+      setAlertClass("alert--progress");
+    } else if (status === "success") {
+      setAlertClass("alert--success");
+    } else if (status === "error") {
+      setAlertClass("alert--error");
+    } else {
+      setAlertClass("alert--disabled");
+    }
 
-  //     console.log("submit");
-  //   };
+    if (text) setAlertText(text);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    signupForm.validateAll();
-    signupForm.setAlert("progress", "Завантаження... ");
+    if (signupForm.disabled) {
+      signupForm.validateAll();
+      return;
+    }
+
+    setAlert("progress", "Loading... ");
     try {
       const res = await fetch("http://localhost:4000/signup", {
         method: "POST",
@@ -178,26 +155,19 @@ export default function Signup() {
       });
       const data = await res.json();
       if (res.ok) {
-        setAuth({
+        setAuth((prevAuth) => ({
+          ...prevAuth,
           email: data.session.user.email,
           token: data.session.token,
-          confirm: data.session.user.confirm,
-          balance: data.balance,
-        });
-        signupForm.setAlert("success", data.message);
-        console.log("data", data);
-        // console.log("-----------", currentAuth.email);
-        // saveSession(data.session);
-        localStorage.setItem("token", data.session.token);
+        }));
+        setAlert("success", data.message);
         navigate("/signup-confirm");
       } else {
-        signupForm.setAlert("error", data.message);
+        setAlert("error", data.message);
       }
     } catch (error) {
-      signupForm.setAlert("error", error.message);
+      setAlert("error", error.message);
     }
-
-    console.log("currentAuth", currentAuth);
   };
   return (
     <Box>
@@ -238,7 +208,7 @@ export default function Signup() {
           </Link>
         </span>
         <Button onClick={handleSubmit}>Contine</Button>
-        <Alert />
+        <Alert className={alertClass} message={alertText} />
       </div>
     </Box>
   );

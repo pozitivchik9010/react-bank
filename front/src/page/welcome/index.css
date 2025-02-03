@@ -27,7 +27,7 @@
 }
 
 .background-icon {
-  position: absolute; /* Встановлюємо абсолютне позиціонування для другої картинки */
+  position: absolute;
   bottom: 0;
   right: 0;
   width: auto;

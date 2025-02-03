@@ -2,19 +2,17 @@ class User {
   static #list = []
   static #count = 1
 
-  constructor({ email, password }) {
+  constructor({ email, password, isConfirm = false }) {
     this.id = User.#count++
     this.email = String(email).toLowerCase()
     this.password = String(password)
-    this.isConfirm = false
+    this.isConfirm = isConfirm
   }
 
   static create(data) {
     const user = new User(data)
 
     this.#list.push(user)
-
-    // console.log(this.#list)
 
     return user
   }

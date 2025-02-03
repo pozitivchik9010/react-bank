@@ -1,6 +1,4 @@
 import "./index.css";
-import Change from "../../component/change";
-import "./index.css";
 import Button from "../../component/button";
 import Title from "../../component/title";
 import Field from "../../component/field";
@@ -10,12 +8,9 @@ import Box from "../../component/box";
 import FieldPassword from "../../component/field-password";
 import Alert from "../../component/alert";
 import Divider from "../../component/divider";
-import { useNavigate, Link } from "react-router-dom";
-///////
 import { useContext } from "react";
 import { AuthContext } from "../../App";
 import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
-///////
 
 class SignupForm extends Form {
   FIELD_NAME = {
@@ -24,12 +19,12 @@ class SignupForm extends Form {
     PASSWORD_AGAIN: "passwordAgain",
   };
   FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
     PASSWORD:
-      "Пароль повинен складатися не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
-    PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
+      "The password must be at least 8 characters long, including at least one number, lowercase and uppercase letter.",
+    PASSWORD_AGAIN: "Your second password does not match the first one.",
   };
 
   checkDisabled = () => {
@@ -100,7 +95,6 @@ class SignupForm extends Form {
 }
 
 export default function Settings() {
-  const navigate = useNavigate();
   const signupForm = new SignupForm();
   const { setAuth, currentAuth } = useContext(AuthContext);
 
@@ -120,9 +114,9 @@ export default function Settings() {
   const handleSubmitEmail = async (e) => {
     e.preventDefault();
     signupForm.validateAll();
-    signupForm.setAlert("progress", "Завантаження... ");
+    signupForm.setAlert("progress", "Loading... ");
     try {
-      const res = await fetch("http://localhost:4000/settings", {
+      const res = await fetch("http://localhost:4000/settings-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,7 +144,7 @@ export default function Settings() {
   };
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
-    signupForm.setAlert("progress", "Завантаження... ");
+    signupForm.setAlert("progress", "Loading... ");
     try {
       const res = await fetch("http://localhost:4000/settings-password", {
         method: "POST",

@@ -19,7 +19,6 @@ import  { createContext,  useEffect,  useState } from "react";
 
 
 
-// Створення контексту
 export const AuthContext = createContext({});
 
 

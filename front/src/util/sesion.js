@@ -5,7 +5,6 @@ export const saveSession = (session) => {
     window.session = session;
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   } catch (err) {
-    console.log(err);
     window.session = null;
   }
 };
@@ -20,7 +19,6 @@ export const loadSession = () => {
       window.session = null;
     }
   } catch (err) {
-    console.log(err);
     window.session = null;
   }
 };
@@ -30,7 +28,6 @@ export const getTokenSession = () => {
     const session = getSession();
     return session ? session.token : null;
   } catch (err) {
-    console.log(err);
     return null;
   }
 };
@@ -40,7 +37,6 @@ export const getSession = () => {
     const session = JSON.parse(localStorage.getItem(SESSION_KEY));
     return session || null;
   } catch (err) {
-    console.log(err);
     return null;
   }
 };

@@ -21,15 +21,17 @@ class Notification {
   }
 
   static updateEmail(email, newEmail) {
-    const notification = this.#list.find(
+    const notification = this.#list.filter(
       (notif) => notif.email === email,
     )
-    if (notification) {
-      notification.email = newEmail
+    if (notification.length > 0) {
+      notification.forEach((notif) => {
+        notif.email = newEmail
+      })
       return notification
     }
     throw new Error(
-      `Notification with ID ${email} not found`,
+      `Notification with email ${email} not found`,
     )
   }
 

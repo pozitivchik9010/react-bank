@@ -1,7 +1,5 @@
 import "./index.css";
-import Button from "../../component/button";
 import Title from "../../component/title";
-import Field from "../../component/field";
 import Grid from "../../component/grid";
 import Box from "../../component/box";
 import IconButton from "../../component/icon-button";
@@ -22,19 +20,17 @@ export default function Balance() {
   const [transaction, setTransaction] = useState([]);
 
   useEffect(() => {
-    console.log("Current Auth:", currentAuth);
     const fetchBalance = async () => {
       try {
         const response = await fetch("http://localhost:4000/balance", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: currentAuth.email }), // Використовуйте userId замість email
+          body: JSON.stringify({ email: currentAuth.email }),
         });
         const data = await response.json();
-        setBalance(data.balance.amount); // Оновлено для отримання amount
-        console.log("Fetched balance:", data.balance.amount);
+        setBalance(data.balance.amount);
       } catch (error) {
-        console.error("Помилка отримання балансу:", error);
+        console.error(error);
       }
     };
 
@@ -45,22 +41,19 @@ export default function Balance() {
         );
         const data = await response.json();
         setTransaction(data.reverse());
-        console.log("Fetched transaction:", data);
       } catch (error) {
-        console.error("Помилка отримання транзакцій:", error);
+        console.error(error);
       }
     };
 
     fetchBalance();
     fetchTransaction();
 
-    // Додаємо інтервал для автоматичного оновлення балансу
     const intervalId = setInterval(() => {
       fetchBalance();
       fetchTransaction();
-    }, 5000); // Оновлюємо кожні 5 секунд
+    }, 5000);
 
-    // Очищуємо інтервал при розмонтуванні компонента
     return () => clearInterval(intervalId);
   }, [currentAuth]);
 
@@ -69,8 +62,8 @@ export default function Balance() {
       <Grid className="head">
         <IconButton url="/settings" iconButton={settingIcon} />
         <Grid>
-          <Title className="head__title">Баланс</Title>
-          <Title>$ {balance}</Title> {/* Оновлено для відображення балансу */}
+          <Title className="head__title">Balance</Title>
+          <Title>$ {balance}</Title>
           <Grid className="buttonCont">
             <div>
               <IconButton

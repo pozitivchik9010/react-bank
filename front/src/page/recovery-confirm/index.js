@@ -8,24 +8,27 @@ import BackButton from "../../component/back-button";
 import Box from "../../component/box";
 import Alert from "../../component/alert";
 import { useNavigate, Link } from "react-router-dom";
-import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
-import { useContext } from "react";
+import { Form, REG_EXP_PASSWORD } from "../../util/form";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../App";
 
 export default function Recovery() {
   const navigate = useNavigate();
   const { setAuth, currentAuth } = useContext(AuthContext);
+  const [alertClass, setAlertClass] = useState("alert--disabled");
+  const [alertText, setAlertText] = useState("");
   const form = new Form();
   form.FIELD_NAME = {
+    CODE: "code",
     PASSWORD: "password",
     PASSWORD_AGAIN: "passwordAgain",
   };
   form.FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
     PASSWORD:
-      "Пароль повинен складатися не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
-    PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
+      "The password must be at least 8 characters long, including at least one number, lowercase and uppercase letter.",
+    PASSWORD_AGAIN: "Your second password does not match the first one.",
   };
 
   const validate = (name, value) => {
@@ -39,14 +42,12 @@ export default function Recovery() {
 
     if (name === form.FIELD_NAME.PASSWORD) {
       if (!REG_EXP_PASSWORD.test(String(value))) {
-        console.log("password", form.FIELD_ERROR.PASSWORD);
         return form.FIELD_ERROR.PASSWORD;
       }
     }
 
     if (name === form.FIELD_NAME.PASSWORD_AGAIN) {
       if (String(value) !== form.value[form.FIELD_NAME.PASSWORD]) {
-        console.log(form.FIELD_ERROR.PASSWORD_AGAIN);
         return form.FIELD_ERROR.PASSWORD_AGAIN;
       }
     }
@@ -80,10 +81,48 @@ export default function Recovery() {
       delete form.error[name];
     }
   };
+
+  const setAlert = (status, text) => {
+    if (status === "progress") {
+      setAlertClass("alert--progress");
+    } else if (status === "success") {
+      setAlertClass("alert--success");
+    } else if (status === "error") {
+      setAlertClass("alert--error");
+    } else {
+      setAlertClass("alert--disabled");
+    }
+
+    if (text) setAlertText(text);
+  };
+
+  const validateAll = () => {
+    let hasErrors = false;
+
+    Object.values(form.FIELD_NAME).forEach((name) => {
+      const value = form.value[name] || "";
+      const error = validate(name, value);
+      if (error) {
+        form.error[name] = error;
+        hasErrors = true;
+      } else {
+        delete form.error[name];
+      }
+
+      form.setError(name, error);
+    });
+    form.updateDisabledState();
+    return hasErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // form.validateAll();
-    form.setAlert("progress", "Завантаження... ");
+    const error = validateAll();
+    if (error) {
+      return;
+    }
+
+    setAlert("progress", "Loading... ");
     try {
       const res = await fetch("http://localhost:4000/recovery-confirm", {
         method: "POST",
@@ -97,14 +136,14 @@ export default function Recovery() {
       });
       const data = await res.json();
       if (res.ok) {
-        form.setAlert("success", data.message);
+        setAlert("success", data.message);
 
         navigate("/balance");
       } else {
-        form.setAlert("error", data.message);
+        setAlert("error", data.message);
       }
     } catch (error) {
-      form.setAlert("error", error.message);
+      setAlert("error", error.message);
     }
   };
   return (
@@ -138,7 +177,7 @@ export default function Recovery() {
           action={change}
         />
         <Button onClick={handleSubmit}>Restore password</Button>
-        <Alert />
+        <Alert className={alertClass} message={alertText} />
       </div>
     </Box>
   );

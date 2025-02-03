@@ -7,14 +7,10 @@ import Grid from "../../component/grid";
 import BackButton from "../../component/back-button";
 import Box from "../../component/box";
 import Alert from "../../component/alert";
-import Divider from "../../component/divider";
 import { useNavigate, Link } from "react-router-dom";
-///////
 import { useContext } from "react";
 import { AuthContext } from "../../App";
 import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
-
-///////
 
 class SignupForm extends Form {
   FIELD_NAME = {
@@ -23,12 +19,12 @@ class SignupForm extends Form {
     PASSWORD_AGAIN: "passwordAgain",
   };
   FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
     PASSWORD:
-      "Пароль повинен складатися не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
-    PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
+      "The password must be at least 8 characters long, including at least one number, lowercase and uppercase letter.",
+    PASSWORD_AGAIN: "Your second password does not match the first one.",
   };
 
   checkDisabled = () => {
@@ -66,15 +62,12 @@ class SignupForm extends Form {
 
     if (name === this.FIELD_NAME.PASSWORD) {
       if (!REG_EXP_PASSWORD.test(String(value))) {
-        console.log("password", this.FIELD_ERROR.PASSWORD);
         return this.FIELD_ERROR.PASSWORD;
       }
     }
 
     if (name === this.FIELD_NAME.PASSWORD_AGAIN) {
       if (String(value) !== this.value[this.FIELD_NAME.PASSWORD]) {
-        console.log(this.FIELD_ERROR.PASSWORD_AGAIN);
-
         return this.FIELD_ERROR.PASSWORD_AGAIN;
       }
     }
@@ -106,7 +99,6 @@ export default function Settings() {
   const change = (name, value) => {
     const error = signupForm.validate(name, value);
     signupForm.value[name] = value;
-    // console.log("value", signupForm.value);
     if (error) {
       signupForm.setError(name, error);
       signupForm.error[name] = error;
@@ -115,18 +107,11 @@ export default function Settings() {
       delete signupForm.error[name];
     }
   };
-  document.body.classList.add("payment-active"); // Додає клас до body
+  document.body.classList.add("payment-active");
 
   const handleSend = async (e) => {
-    console.log(
-      signupForm.value.email,
-      signupForm.value.amount,
-      currentAuth.email
-    );
     e.preventDefault();
-    // signupForm.validateAll();
-    signupForm.setAlert("progress", "Завантаження... ");
-    console.log(`поповнено на ${signupForm.value.amount}`);
+    signupForm.setAlert("progress", "Loading... ");
     try {
       const res = await fetch("http://localhost:4000/send", {
         method: "POST",
@@ -147,10 +132,7 @@ export default function Settings() {
           notification: data.notification,
           balance: data.balance,
         }));
-        console.log(data.transaction);
         signupForm.setAlert("success", data.message);
-        // console.log("data", data);
-        console.log("поповнено");
       } else {
         signupForm.setAlert("error", data.message);
       }

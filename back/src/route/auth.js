@@ -16,6 +16,7 @@ User.create({
 User.create({
   email: 'admin@mail.com',
   password: 234,
+  isConfirm: true,
 })
 User.create({
   email: 'developer@mail.com',
@@ -25,10 +26,9 @@ User.create({
 router.post('/signup', (req, res) => {
   const { email, password } = req.body
 
-  console.log('========', email, password)
   if (!email || !password) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error. Required fields are missing!!',
     })
   }
   try {
@@ -36,23 +36,23 @@ router.post('/signup', (req, res) => {
 
     if (user) {
       return res.status(400).json({
-        message: 'Користувач з таким e-mail, вже існує!',
+        message:
+          'Error. A user with this email already exists!',
       })
     }
 
     const newUser = User.create({ email, password })
     const session = Session.create(newUser)
     const balance = Balance.create(email)
-    // console.log('SESION', session)
     Confirm.create(newUser.email)
     res.status(200).json({
-      message: 'Користувач успішно зареєстрований!',
+      message: 'User successfully registered!',
       session,
       balance,
     })
   } catch (err) {
     return res.status(400).json({
-      message: 'Помилка створення користувача!',
+      message: 'Error creating user!',
     })
   }
 })
@@ -60,14 +60,11 @@ router.post('/signup', (req, res) => {
 
 router.post('/signin', function (req, res) {
   const { email, password } = req.body
-  //   console.log(email, password)
   if (!email || !password) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
-
-  //   console.log(email, password)
 
   try {
     const user = User.getByEmail(email)
@@ -75,23 +72,23 @@ router.post('/signin', function (req, res) {
     if (!user) {
       return res.status(400).json({
         message:
-          'Помилка. Користувача за таким e-mail не знайдено!',
+          'Error: User with this email address not found!',
       })
     }
     if (password !== user.password) {
       return res.status(400).json({
-        message: 'Помилка. Невірний пароль!',
+        message: 'Error: Incorrect password.!',
       })
     }
 
     const session = Session.create(user)
     Notification.create({
       email,
-      message: `Здійснено вхід у акаунт`,
+      message: `Account logged in!`,
       type: 'Warning',
     })
     return res.status(200).json({
-      message: 'Ви увійшли в акаунт',
+      message: 'You are logged in.',
       session,
     })
   } catch (err) {
@@ -106,73 +103,56 @@ router.post('/signup-confirm-renew', async (req, res) => {
   const { email } = req.body
 
   if (!email) {
-    console.log("Обов'язковий параметр email відсутній.")
     return res.status(400).json({
-      message: "Обов'язковий параметр email відсутній.",
+      message: 'The required email parameter is missing!',
     })
   }
 
   try {
-    console.log(
-      `Створення коду підтвердження для: ${email}`,
-    )
-
     const user = await User.getByEmail(email)
     if (!user) {
-      console.log(
-        'Користувача за таким e-mail не знайдено.',
-      )
       return res.status(400).json({
-        message: 'Користувача за таким e-mail не знайдено!',
+        message: 'No user found with this email address.',
       })
     }
 
     Confirm.create(email)
-    console.log('Код підтвердження повторно відправлено.')
     res.status(200).json({
-      message: 'Код підтвердження повторно відправлено.',
+      message: 'Confirmation code resent.',
     })
   } catch (error) {
-    console.error('Помилка сервера:', error)
     res
       .status(500)
-      .json({ message: 'Внутрішня помилка сервера' })
+      .json({ message: 'Error: Internal server error!' })
   }
 })
 
 router.post('/signup-confirm', (req, res) => {
   const { code, token } = req.body
-  console.log('code', code, 'token', token)
 
   if (!code) {
-    return res.status(400).json(
-      {
-        message: "Помилка. Обов'язкові поля відсутні!",
-      },
-      console.log('error empty'),
-    )
+    return res.status(400).json({
+      message: 'Error: Required fields are missing!!',
+    })
   }
 
   try {
     const session = Session.get(token)
     if (!token) {
-      return res.status(400).json(
-        {
-          message: 'Помилка. Ви не увійшли в аккаунт!',
-        },
-        console.log('login error'),
-      )
+      return res.status(400).json({
+        message: 'Error: You are not logged in!',
+      })
     }
 
     const email = Confirm.getData(Number(code))
     if (!email) {
       return res.status(400).json({
-        message: 'Код не існує!',
+        message: 'Error: Code does not exist!',
       })
     }
     if (email !== session.user.email) {
       return res.status(400).json({
-        message: 'Код не дійсний!',
+        message: 'Error: The code is not valid!',
       })
     }
 
@@ -181,7 +161,7 @@ router.post('/signup-confirm', (req, res) => {
     session.user.isConfirm = true
 
     return res.status(200).json({
-      message: 'Ви успішно підтвердили свою пошту',
+      message: 'You have successfully verified your email!',
       session,
     })
   } catch (error) {
@@ -192,46 +172,32 @@ router.post('/signup-confirm', (req, res) => {
 })
 
 router.post('/recovery', (req, res) => {
-  console.log('=== Запит на відновлення паролю ===')
   const { email } = req.body
 
   if (!email) {
-    console.error('Помилка: email відсутній')
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
 
   try {
-    console.log('Пошук користувача за email:', email)
     const user = User.getByEmail(email)
 
     if (!user) {
-      console.error(
-        'Помилка: Користувача з таким email не знайдено',
-      )
       return res.status(400).json({
-        message: 'Користувача з таким email не існує!',
+        message:
+          'Error: User with this email address not found!',
       })
     }
 
-    console.log(
-      'Створення коду підтвердження для email:',
-      email,
-    )
     Confirm.create(email)
 
-    console.log(
-      'Успіх: Код для відновлення паролю відправлено',
-    )
     return res.status(200).json({
-      message:
-        'Код для відновлення паролю успішно відправлено!',
+      message: 'Password recovery code sent successfully!',
     })
   } catch (err) {
-    console.error('Внутрішня помилка сервера:', err)
     return res.status(500).json({
-      message: 'Внутрішня помилка сервера',
+      message: 'Error: Internal server error!',
     })
   }
 })
@@ -241,7 +207,7 @@ router.post('/recovery-confirm', (req, res) => {
   const { code, password } = req.body
   if (!password || !code) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
 
@@ -249,19 +215,20 @@ router.post('/recovery-confirm', (req, res) => {
     const email = Confirm.getData(Number(code))
     if (!email) {
       return res.status(400).json({
-        message: 'Код не існує',
+        message: 'Error: Code does not exist',
       })
     }
     const user = User.getByEmail(email)
 
     if (!user) {
       return res.status(400).json({
-        message: 'Користувач з таким email не існує!',
+        message:
+          'Error: User with this email does not exist!',
       })
     }
     Notification.create({
       email,
-      message: `Відправлено запит на відновлення паролю`,
+      message: `Password recovery request sent.`,
       type: 'Warning',
     })
 
@@ -269,12 +236,12 @@ router.post('/recovery-confirm', (req, res) => {
 
     Notification.create({
       email,
-      message: `Ваш пароль було змінено`,
+      message: `Your password has been changedrequest password recovery`,
       type: 'Warning',
     })
 
     return res.status(200).json({
-      message: 'Пароль змінено',
+      message: 'Password changed',
     })
   } catch (error) {
     return res.status(400).json({
@@ -283,112 +250,92 @@ router.post('/recovery-confirm', (req, res) => {
   }
 })
 // ================================================================
-router.post('/settings', (req, res) => {
+router.post('/settings-email', (req, res) => {
   const { newEmail, email, password, token } = req.body
-  //   console.log(newEmail, email, password, token)
 
   if (!newEmail || !password) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
 
   try {
     if (User.getByEmail(newEmail)) {
       return res.status(400).json({
-        message: 'Користувач з таким email вже існує!',
+        message:
+          'Error: A user with this email already exists!',
       })
     }
 
     const user = User.getByEmail(email)
-    console.log('user', user)
 
-    console.log('password', password)
-    console.log('userPassword', user.password)
     if (password !== user.password) {
       return res.status(400).json({
-        message: 'Пароль не вірний!',
+        message: 'Error: The password is incorrect.!',
       })
     }
-    console.log('==========', user.email)
 
     const emailBalance = Balance.get(email)
     const emailNotification = Notification.getByEmail(email)
-
-    console.log(emailBalance)
-    console.log('==========')
-    console.log(emailNotification)
-    console.log('==========')
 
     user.email = newEmail
     let newemail = user.email
 
     emailBalance.email = newemail
-    emailNotification.email = newemail
+
     Transaction.updateEmail(email, newemail)
     Notification.updateEmail(email, newEmail)
 
-    console.log('==========', newemail)
     Notification.create({
-      email,
-      message: `Ваш email було змінено!`,
+      email: newemail,
+      message: `Your email has been changed!`,
       type: 'Warning',
     })
     return res.status(200).json({
-      message: 'Ваш емайл успішно змінено',
+      message: 'Your email has been changed!',
       newemail,
     })
-
-    //
   } catch (error) {
     return res.status(400).json({
       message: error.message,
     })
   }
-  //
 })
 // ============================================================
 router.post('/settings-password', (req, res) => {
   const { oldPassword, email, newPassword } = req.body
-  //   console.log(newEmail, email, password, token)
 
   if (!oldPassword || !newPassword || !email) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
 
   try {
     const user = User.getByEmail(email)
-    console.log('user', user)
 
-    console.log('userPassword', user.password)
     if (oldPassword !== user.password) {
       return res.status(400).json({
-        message: 'Старий пароль не вірний!',
+        message: 'Error: The old password is incorrect!',
       })
     }
-    console.log('==========', user.email)
 
     user.password = newPassword
     let newepassword = user.password
     Notification.create({
       email,
-      message: `Ваш пароль було змінено!`,
+      message: `Your password has been changed!`,
       type: 'Warning',
     })
     return res.status(200).json({
-      message: 'Ваш пароль успішно змінено!',
+      message: 'Your password has been changed!',
       newPassword,
     })
-
-    //
   } catch (error) {
     return res.status(400).json({
       message: error.message,
     })
   }
-  //
 })
 
 // =================================================
@@ -396,13 +343,10 @@ router.post('/top-up', (req, res) => {
   const { email, amount, paymentMethod } = req.body
   if (!email || !amount || !paymentMethod) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
   try {
-    console.log(
-      `Received top-up request for ${email} with amount ${amount}`,
-    )
     const transaction = Transaction.create({
       email,
       amount,
@@ -412,13 +356,11 @@ router.post('/top-up', (req, res) => {
     const balance = Balance.update(email, amount)
     const notification = Notification.create({
       email,
-      message: `Баланс поповнено на ${amount}`,
+      message: `Balance replenished by ${amount}`,
     })
-    console.log('Transaction:', transaction)
-    console.log('Notification:', notification)
-    console.log('Updated balance:', balance)
+
     res.status(200).json({
-      message: 'Баланс поповнено',
+      message: 'Balance replenished',
       transaction,
       notification,
       balance,
@@ -433,81 +375,64 @@ router.post('/send', (req, res) => {
 
   if (!senderEmail || !recipientEmail || !amount) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
 
   try {
-    console.log(
-      `Received send request from ${senderEmail} to ${recipientEmail} with amount ${amount}`,
-    )
-
     const toUser = User.getByEmail(recipientEmail)
     const fromUser = User.getByEmail(senderEmail)
 
     if (!toUser) {
       return res.status(400).json({
-        message: 'Користувача за таким e-mail не знайдено!',
+        message: 'No user found with this email address!',
       })
     }
 
     let fromBalance = Balance.get(senderEmail)
-    console.log(
-      `Sender balance before transaction: ${fromBalance.amount}`,
-    )
 
     if (fromBalance.amount < amount) {
-      return res
-        .status(400)
-        .json({ message: 'Недостатньо коштів на рахунку!' })
+      return res.status(400).json({
+        message: 'Insufficient funds in the account!',
+      })
     }
 
-    // Створення транзакції відправника (тип "send")
     Transaction.create({
       email: senderEmail,
       amount: amount,
-      type: 'send', // Тип транзакції
+      type: 'send',
       senderEmail: senderEmail,
       recipientEmail: recipientEmail,
     })
 
-    // Створення транзакції отримувача (тип "receive")
     Transaction.create({
       email: recipientEmail,
       amount: amount,
-      type: 'receive', // Тип транзакції
+      type: 'receive',
       senderEmail: senderEmail,
       recipientEmail: recipientEmail,
     })
 
-    // Оновлення балансу обох користувачів
     Balance.update(senderEmail, -amount)
     Balance.update(recipientEmail, amount)
 
-    // Створення сповіщень
     Notification.create({
       email: senderEmail,
-      message: `Ви відправили ${amount} грн користувачу ${recipientEmail}`,
+      message: `You have sen ${amount} $ to ${recipientEmail}
+	`,
     })
 
     Notification.create({
       email: recipientEmail,
-      message: `Ви отримали ${amount} грн від користувача ${senderEmail}`,
+      message: `You have sen ${amount} $ to ${recipientEmail}`,
     })
 
     const updatedSenderBalance = Balance.get(senderEmail)
     const updatedRecipientBalance =
       Balance.get(recipientEmail)
 
-    console.log(
-      `Sender balance after transaction: ${updatedSenderBalance.amount}`,
-    )
-    console.log(
-      `Recipient balance after transaction: ${updatedRecipientBalance.amount}`,
-    )
-
     return res.status(200).json({
-      message: 'Кошти успішно відправлено',
+      message: 'Funds sent successfully',
       senderBalance: updatedSenderBalance,
       recipientBalance: updatedRecipientBalance,
     })
@@ -520,10 +445,9 @@ router.post('/balance', (req, res) => {
   const { email } = req.body
   try {
     const balance = Balance.get(email)
-    console.log(`Balance for ${email}:`, balance)
     res
       .status(200)
-      .json({ message: 'Баланс отримано', balance })
+      .json({ message: 'Balance received', balance })
   } catch (error) {
     return res.status(400).json({ message: error.message })
   }
@@ -534,12 +458,12 @@ router.get('/transaction', (req, res) => {
 
   if (!email) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкове поле email відсутнє!",
+      message: 'Error. Required email field is missing!',
     })
   }
   try {
     const transactions = Transaction.getByEmail(email)
-    res.status(200).json(transactions) // Перевірте, чи повертає correct transactions
+    res.status(200).json(transactions)
   } catch (error) {
     return res.status(400).json({ message: error.message })
   }
@@ -550,12 +474,12 @@ router.get('/notification', (req, res) => {
 
   if (!email) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкове поле email відсутнє!",
+      message: 'Error. Required email field is missing!',
     })
   }
   try {
     const notifications = Notification.getByEmail(email)
-    res.status(200).json(notifications) // Перевірте, чи повертає correct transactions
+    res.status(200).json(notifications)
   } catch (error) {
     return res.status(400).json({ message: error.message })
   }
@@ -567,7 +491,7 @@ router.get('/transaction/:id', (req, res) => {
 
   if (!id || !email) {
     return res.status(400).json({
-      message: "Помилка. Обов'язкові поля відсутні!",
+      message: 'Error: Required fields are missing!!',
     })
   }
 
@@ -576,7 +500,7 @@ router.get('/transaction/:id', (req, res) => {
 
     if (!transaction || transaction.email !== email) {
       return res.status(404).json({
-        message: 'Транзакцію не знайдено!',
+        message: 'Transaction not found!',
       })
     }
 

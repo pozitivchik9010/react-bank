@@ -25,18 +25,16 @@ export default function Notifications() {
         setNotification(data.reverse());
         console.log("Fetched notification:", data);
       } catch (error) {
-        console.error("Помилка отримання транзакцій:", error);
+        console.error(error);
       }
     };
 
     fetchNotification();
 
-    // Додаємо інтервал для автоматичного оновлення балансу
     const intervalId = setInterval(() => {
       fetchNotification();
-    }, 5000); // Оновлюємо кожні 5 секунд
+    }, 5000);
 
-    // Очищуємо інтервал при розмонтуванні компонента
     return () => clearInterval(intervalId);
   }, [currentAuth]);
   return (

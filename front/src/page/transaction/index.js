@@ -6,12 +6,8 @@ import { AuthContext } from "../../App";
 import Card from "../../component/card";
 import Grid from "../../component/grid";
 import Title from "../../component/title";
-import Field from "../../component/field";
 import BackButton from "../../component/back-button";
 import Box from "../../component/box";
-import FieldPassword from "../../component/field-password";
-import Alert from "../../component/alert";
-import Divider from "../../component/divider";
 
 export default function TransactionDetails() {
   const { transactionId } = useParams();
@@ -25,25 +21,22 @@ export default function TransactionDetails() {
           `http://localhost:4000/transaction/${transactionId}?email=${currentAuth.email}`
         );
         const data = await response.json();
-        setTransaction(data); // Очікуємо одну транзакцію
+        setTransaction(data);
         console.log("Fetched transaction:", data);
       } catch (error) {
-        console.error("Помилка отримання транзакції:", error);
+        console.error("Error receiving transaction:", error);
       }
     };
 
     fetchTransaction();
 
-    // Додаємо інтервал для автоматичного оновлення балансу
     const intervalId = setInterval(() => {
       fetchTransaction();
-    }, 5000); // Оновлюємо кожні 5 секунд
-
-    // Очищуємо інтервал при розмонтуванні компонента
+    }, 5000);
     return () => clearInterval(intervalId);
   }, [currentAuth]);
   if (!transaction) {
-    return <div>Завантаження...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
@@ -83,7 +76,7 @@ export default function TransactionDetails() {
             </p>
           </div>
           <div className="transaction__item">
-            Тип:
+            Type:
             <p> {transaction.type}</p>
           </div>
         </Card>

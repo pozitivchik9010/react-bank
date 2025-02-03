@@ -6,25 +6,26 @@ import Grid from "../../component/grid";
 import BackButton from "../../component/back-button";
 import Box from "../../component/box";
 import Alert from "../../component/alert";
-import { useNavigate, Link } from "react-router-dom";
-import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
-import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../App";
+import { Form, REG_EXP_EMAIL } from "../../util/form";
 
 export default function Recovery() {
   const navigate = useNavigate();
-  const { setAuth, currentAuth } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
+  const [alertClass, setAlertClass] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
   const form = new Form();
+
   form.FIELD_NAME = {
     EMAIL: "email",
   };
   form.FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
   };
-
-  const validate = (name, value) => {
+  const validateEmail = (value) => {
     if (String(value).length < 1) {
       return form.FIELD_ERROR.IS_EMPTY;
     }
@@ -33,17 +34,15 @@ export default function Recovery() {
       return form.FIELD_ERROR.IS_BIG;
     }
 
-    if (name === form.FIELD_NAME.EMAIL) {
-      if (!REG_EXP_EMAIL.test(String(value))) {
-        return form.FIELD_ERROR.EMAIL;
-      }
+    if (!REG_EXP_EMAIL.test(String(value))) {
+      return form.FIELD_ERROR.EMAIL;
     }
   };
 
-  const setError = (name, error) => {
-    const span = document.querySelector(`.form__error[name="${name}"]`);
-    const label = document.querySelector(`.field__label[name="${name}"]`);
-    const field = document.querySelector(`.validation[name="${name}"]`);
+  const setError = (error) => {
+    const span = document.querySelector(`.form__error `);
+    const label = document.querySelector(`.field__label `);
+    const field = document.querySelector(`.validation`);
 
     if (label) {
       label.classList.toggle("form__error--active", Boolean(error));
@@ -57,48 +56,55 @@ export default function Recovery() {
     }
   };
 
-  const change = (name, value) => {
-    const error = validate(name, value);
-    form.value[name] = value;
+  const handleChange = (name, value) => {
+    setEmail(value);
+
+    let error = validateEmail(email);
+
     if (error) {
-      setError(name, error);
-      form.error[name] = error;
+      setError(error);
     } else {
-      setError(name, null);
-      delete form.error[name];
+      setError(null);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // form.validateAll();
-    form.setAlert("progress", "Завантаження... ");
+    const error = validateEmail(email);
+    if (error) {
+      setAlertClass("alert--error");
+      setAlertMessage(error);
+      return;
+    }
+
+    setAlertClass("alert--progress");
+    setAlertMessage("Loading...");
+
     try {
       const res = await fetch("http://localhost:4000/recovery", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: form.value.email,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
+
       const data = await res.json();
       if (res.ok) {
-        form.setAlert("success", data.message);
+        setAlertClass("alert--success");
+        setAlertMessage(data.message);
         navigate("/recovery-confirm");
       } else {
-        form.setAlert("error", data.message);
+        setAlertClass("alert--error");
+        setAlertMessage(data.message);
       }
     } catch (error) {
-      form.setAlert("error", error.message);
+      setAlertClass("alert--error");
+      setAlertMessage("Error server: " + error.message);
     }
-
-    console.log("currentAuth", currentAuth);
   };
+
   return (
     <Box>
       <BackButton />
-
       <Grid>
         <Title className="main-title">Recover password</Title>
         <Title className="main-sub-title">Choose a recovery method</Title>
@@ -108,11 +114,11 @@ export default function Recovery() {
           name="email"
           type="email"
           label="Email"
-          placeholder="Enter your name"
-          action={change}
+          placeholder="Enter your email"
+          action={handleChange}
         />
         <Button onClick={handleSubmit}>Send code</Button>
-        <Alert />
+        <Alert className={alertClass} message={alertMessage} />
       </div>
     </Box>
   );

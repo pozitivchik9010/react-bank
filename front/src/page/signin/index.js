@@ -9,7 +9,7 @@ import FieldPassword from "../../component/field-password";
 import Alert from "../../component/alert";
 import { Link, useNavigate } from "react-router-dom";
 import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
-import { useContext, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../../App";
 
 class SignupForm extends Form {
@@ -18,9 +18,9 @@ class SignupForm extends Form {
     PASSWORD: "password",
   };
   FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
   };
 
   checkDisabled = () => {
@@ -39,6 +39,7 @@ class SignupForm extends Form {
     }
 
     this.disabled = disabled;
+    return disabled;
   };
 
   validate(name, value) {
@@ -73,19 +74,15 @@ class SignupForm extends Form {
       field.classList.toggle("validation--active", Boolean(error));
     }
   };
-
-  convertData = () => {
-    return JSON.stringify({
-      [this.FIELD_NAME.EMAIL]: this.value[this.FIELD_NAME.EMAIL],
-      [this.FIELD_NAME.PASSWORD]: this.value[this.FIELD_NAME.PASSWORD],
-    });
-  };
 }
 
 export default function Signin() {
+  const [alertClass, setAlertClass] = useState("alert--disabled");
+  const [alertText, setAlertText] = useState("");
   const navigate = useNavigate();
 
   const signupForm = new SignupForm();
+  const { setAuth, currentAuth } = useContext(AuthContext);
 
   const change = (name, value) => {
     const error = signupForm.validate(name, value);
@@ -99,12 +96,35 @@ export default function Signin() {
       delete signupForm.error[name];
     }
   };
-  const { setAuth, currentAuth } = useContext(AuthContext);
 
+  const setAlert = (status, text) => {
+    if (status === "progress") {
+      setAlertClass("alert--progress");
+    } else if (status === "success") {
+      setAlertClass("alert--success");
+    } else if (status === "error") {
+      setAlertClass("alert--error");
+    } else {
+      setAlertClass("alert--disabled");
+    }
+
+    if (text) setAlertText(text);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const hasErrors = signupForm.validateAll();
+    if (hasErrors) {
+      return;
+    }
+
     signupForm.validateAll();
-    signupForm.setAlert("progress", "Завантаження... ");
+    console.log(signupForm.validateAll());
+
+    if (signupForm.checkDisabled()) {
+      return;
+    }
+    setAlert("progress", "Loading... ");
     try {
       const res = await fetch("http://localhost:4000/signin", {
         method: "POST",
@@ -119,26 +139,20 @@ export default function Signin() {
       });
       const data = await res.json();
       if (res.ok) {
-        signupForm.setAlert("success", data.message);
-        setAuth({
+        setAlert("success", data.message);
+        setAuth((prevAuth) => ({
+          ...prevAuth,
           email: data.session.user.email,
           token: data.session.token,
           confirm: data.session.user.isConfirm,
-        });
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({
-            email: data.session.user.email,
-            token: data.session.token,
-            confirm: data.session.user.isConfirm,
-          })
-        );
+        }));
+
         navigate("/balance");
       } else {
-        signupForm.setAlert("error", data.message);
+        setAlert("error", data.message);
       }
     } catch (error) {
-      signupForm.setAlert("error", error.message);
+      setAlert("error", error.message);
     }
 
     console.log("submit");
@@ -184,7 +198,7 @@ export default function Signin() {
           </Link>
         </span>
         <Button onClick={handleSubmit}>Contine</Button>
-        <Alert />
+        <Alert className={alertClass} message={alertText} />
       </div>
     </Box>
   );

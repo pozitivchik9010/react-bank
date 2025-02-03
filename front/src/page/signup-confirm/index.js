@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 import "./index.css";
 import Button from "../../component/button";
 import Title from "../../component/title";
@@ -13,40 +13,41 @@ import { AuthContext } from "../../App";
 export default function SignupConfirm() {
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
+  const [alertClass, setAlertClass] = useState("alert--disabled");
+  const [alertText, setAlertText] = useState("");
   const navigate = useNavigate();
+  const { setAuth, currentAuth } = useContext(AuthContext);
 
   const validate = (value) => {
     if (value.length < 1) {
-      return "Введіть значення в поле";
+      return "Enter a value in the field";
     }
     if (value.length > 20) {
-      return "Дуже довге значення, приберіть зайве";
+      return "Very long value, remove the extra";
     }
     return null;
   };
+
   const setAlert = (status, text) => {
-    const el = document.querySelector(`.alert`);
     if (status === "progress") {
-      el.className = "alert alert--progress";
+      setAlertClass("alert--progress");
     } else if (status === "success") {
-      el.className = "alert alert--success";
+      setAlertClass("alert--success");
     } else if (status === "error") {
-      el.className = "alert alert--error";
+      setAlertClass("alert--error");
     } else {
-      el.className = "alert alert--disabled";
+      setAlertClass("alert--disabled");
     }
 
-    if (text) el.innerText = text;
+    if (text) setAlertText(text);
   };
-  const { setAuth, currentAuth } = useContext(AuthContext);
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
     if (!code) {
-      setAlert("error", "Введіть код");
+      setAlert("error", "Enter the code");
       return;
     }
-    setAlert("progress", "Завантаження... ");
+    setAlert("progress", "Loading... ");
 
     try {
       const res = await fetch("http://localhost:4000/signup-confirm", {
@@ -77,7 +78,6 @@ export default function SignupConfirm() {
 
         setAlert("success", data.message);
 
-        // saveSession(data.session);
         navigate("/balance");
       } else {
         setAlert("error", data.message);
@@ -90,7 +90,6 @@ export default function SignupConfirm() {
   const change = (name, value) => {
     const error = validate(value);
     setCode(value);
-    console.log("value", value);
     if (error) {
       setAlert("error", error);
     } else {
@@ -100,10 +99,9 @@ export default function SignupConfirm() {
   const handleRenewClick = async (e) => {
     e.preventDefault();
     const email = currentAuth.email;
-    setAlert("progress", "Відправлення нового коду...");
+    setAlert("progress", "Sending a new code...");
 
     try {
-      console.log("2345");
       const res = await fetch("http://localhost:4000/signup-confirm-renew", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,16 +134,15 @@ export default function SignupConfirm() {
           placeholder="Enter your code"
           action={change}
         />
-        {error && <Alert type="error" message={error} />}
 
         <span className="link__prefix">
-          Загубили код?
+          Lost code?
           <a onClick={handleRenewClick} className="link" id="renew">
-            Відправити код, ще раз
+            Send code again
           </a>
         </span>
         <Button onClick={handleSubmit}>Confirm</Button>
-        <Alert />
+        <Alert className={alertClass} message={alertText} />
       </div>
     </Box>
   );

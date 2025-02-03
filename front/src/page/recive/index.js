@@ -1,6 +1,4 @@
 import "./index.css";
-import Change from "../../component/change";
-import "./index.css";
 import Button from "../../component/button";
 import Title from "../../component/title";
 import Field from "../../component/field";
@@ -10,7 +8,6 @@ import Box from "../../component/box";
 import Alert from "../../component/alert";
 import Divider from "../../component/divider";
 import { useNavigate, Link } from "react-router-dom";
-///////
 import { useContext } from "react";
 import { AuthContext } from "../../App";
 import { Form, REG_EXP_EMAIL, REG_EXP_PASSWORD } from "../../util/form";
@@ -18,7 +15,6 @@ import paymentIcon1 from "./paymentIcon.svg";
 import paymentIcon2 from "./paymentIcon2.svg";
 import logoPaySystem1 from "./logoPaySystem1.svg";
 import logoPaySystem2 from "./logoPaySystem2.svg";
-///////
 
 class SignupForm extends Form {
   FIELD_NAME = {
@@ -27,12 +23,12 @@ class SignupForm extends Form {
     PASSWORD_AGAIN: "passwordAgain",
   };
   FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
     PASSWORD:
-      "Пароль повинен складатися не менше ніж 8 символів, включаючи хоча б одну цифру, малу та велику літеру",
-    PASSWORD_AGAIN: "Ваш другий пароль не збігається з першим",
+      "The password must be at least 8 characters long, including at least one number, lowercase and uppercase letter.",
+    PASSWORD_AGAIN: "Your second password does not match the first one.",
   };
 
   checkDisabled = () => {
@@ -70,7 +66,6 @@ class SignupForm extends Form {
 
     if (name === this.FIELD_NAME.PASSWORD) {
       if (!REG_EXP_PASSWORD.test(String(value))) {
-        console.log("password", this.FIELD_ERROR.PASSWORD);
         return this.FIELD_ERROR.PASSWORD;
       }
     }
@@ -119,14 +114,12 @@ export default function Settings() {
       delete signupForm.error[name];
     }
   };
-  document.body.classList.add("payment-active"); // Додає клас до body
+  document.body.classList.add("payment-active");
 
   const handlePayment = async (paymentMethod, e) => {
     console.log(signupForm.value.amount);
     e.preventDefault();
-    // signupForm.validateAll();
-    signupForm.setAlert("progress", "Завантаження... ");
-    console.log(`поповнено на ${signupForm.value.amount}`);
+    signupForm.setAlert("progress", "Loading... ");
     try {
       const res = await fetch("http://localhost:4000/top-up", {
         method: "POST",
@@ -146,11 +139,7 @@ export default function Settings() {
           transaction: data.transaction,
           balance: data.balance,
         }));
-        console.log(data.transaction);
-        console.log(data.balance);
         signupForm.setAlert("success", data.message);
-        // console.log("data", data);
-        console.log("поповнено");
       } else {
         signupForm.setAlert("error", data.message);
       }

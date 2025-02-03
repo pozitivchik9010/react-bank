@@ -1,10 +1,16 @@
 import "./index.css";
+import logo from "./logo-error.svg";
 
-export default function Component({ text, type }) {
+export default function Alert({ message, className }) {
   return (
-    <span className={`alert alert--${type ? type : "disabled"}`}>
-      <span className="alert-logo"></span>
-      <p>{text}</p>
-    </span>
+    <div className={`alert ${className}`}>
+      {className === "alert--error" && (
+        <>
+          <img src={logo} className="alert-logo" alt="Error logo" />
+          <span>{message}</span>
+        </>
+      )}
+      {className !== "alert--error" && <span>{message}</span>}
+    </div>
   );
 }

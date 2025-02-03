@@ -31,7 +31,6 @@ class Transaction {
   }
 
   static updateEmail(oldEmail, newEmail) {
-    // Оновлення email у всіх транзакціях
     this.#list.forEach((transaction) => {
       if (transaction.email === oldEmail) {
         transaction.email = newEmail
