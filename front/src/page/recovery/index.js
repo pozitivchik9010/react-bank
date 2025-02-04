@@ -23,9 +23,9 @@ export default function Recovery() {
     EMAIL: "email",
   };
   form.FIELD_ERROR = {
-    IS_EMPTY: "Введіть значення в поле",
-    IS_BIG: "Дуже довге значення, приберіть зайве",
-    EMAIL: "Введіть коректне значення e-mail адреси",
+    IS_EMPTY: "Enter a value in the field",
+    IS_BIG: "Very long value, remove the extra",
+    EMAIL: "Please enter a valid email address.",
   };
   const validateEmail = (value) => {
     if (String(value).length < 1) {
@@ -67,8 +67,6 @@ export default function Recovery() {
     } else {
       setError(null);
     }
-    // setAlertClass(error ? "alert--error" : "alert--disabled");
-    // setAlertMessage(error || "");
   };
 
   const handleSubmit = async (e) => {
@@ -81,7 +79,7 @@ export default function Recovery() {
     }
 
     setAlertClass("alert--progress");
-    setAlertMessage("Завантаження...");
+    setAlertMessage("Loading...");
 
     try {
       const res = await fetch("http://localhost:4000/recovery", {
@@ -101,7 +99,7 @@ export default function Recovery() {
       }
     } catch (error) {
       setAlertClass("alert--error");
-      setAlertMessage("Помилка сервера: " + error.message);
+      setAlertMessage("Server error: " + error.message);
     }
   };
 
